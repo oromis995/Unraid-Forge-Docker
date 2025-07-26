@@ -1,9 +1,10 @@
 FROM python:3.10-slim
-RUN ls -l
+
 # Create non-root user 'forge' with UID 99 and GID 100 (Unraid compatibility)
 RUN useradd -u 99 -g 100 -d /home/forge forge
+
 WORKDIR /home/forge
-RUN ls -l
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -12,44 +13,9 @@ RUN apt-get update && apt-get install -y \
     libgoogle-perftools-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ls -l
 # Clone the repository
 RUN git clone https://github.com/lllyasviel/stable-diffusion-webui-forge.git 
-RUN ls -l 
-# Fix ownership
-RUN chown -R forge:users /home && \
-    chmod +x ./stable-diffusion-webui-forge/webui.sh
-RUN ls -l
-WORKDIR ./stable-diffusion-webui-forge
-RUN ls -l
-
-
-# Switch to non-root user
-USER forge
-
-# Create virtual environment and upgrade pip
-RUN python3 -m venv venv && \
-    . venv/bin/activate && \
-    pip install --no-cache-dir --upgrade pip && \
-    deactivate
-
-FROM python:3.10-slim
-
-# Create non-root user 'forge' with UID 99 and GID 100 (Unraid compatibility)
-RUN useradd -u 99 -g 100 -d /home/forge forge
-WORKDIR /home/forge
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    bc \
-    libgtk2.0-dev \
-    libgoogle-perftools-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone the repository
-RUN git clone https://github.com/lllyasviel/stable-diffusion-webui-forge.git
-
+ 
 # Fix ownership
 RUN chown -R forge:users /home && \
     chmod +x ./stable-diffusion-webui-forge/webui.sh
@@ -77,13 +43,13 @@ RUN . venv/bin/activate && \
     pip install --no-cache-dir xformers==0.0.27 && \
     deactivate
 
-# Install extension requirements    
+# Install built-in extension requirements    
 RUN  . venv/bin/activate && \
     pip install --no-cache-dir -r extensions-builtin/sd_forge_controlnet/requirements.txt && \
     pip install --no-cache-dir -r extensions-builtin/forge_legacy_preprocessors/requirements.txt && \
     deactivate
  
-# Install other problematic requirements    
+# Install built-in problematic requirements    
 RUN  . venv/bin/activate && \
     pip install --no-cache-dir insightface && \
     pip uninstall -y onnxruntime && \
